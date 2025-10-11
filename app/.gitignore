@@ -1,0 +1,28 @@
+# Entorno virtual
+venv/
+.env
+
+# Archivos temporales
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Configuración del entorno
+.idea/
+.vscode/
+
+# Archivos sensibles
+google_keys.json
+*.key
+*.pem
+
+# Archivos generados
+*.sqlite3
+*.db
+

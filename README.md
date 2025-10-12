@@ -1,21 +1,43 @@
 #  IASanic
 
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
+[![Status](https://img.shields.io/badge/status-stable-success.svg)]()
+
 Servidor puente para la API **Google Gemini**, construido con **Sanic**.  
-Permite generar texto, analizar preguntas y crear respuestas RAG de forma centralizada mediante endpoints REST.  
+Permite generar texto, analizar preguntas y crear respuestas RAG de forma centralizada mediante endpoints REST.
 
 Ideal para montar un **servidor IA local o en red**, integrable con cualquier aplicación o microservicio.
 
 ---
 
-##  Características
+##  Descripción técnica
 
-- Servidor HTTP rápido basado en **Sanic**
-- Conexión directa con **Google Generative AI (Gemini)**
-- Soporte para **RAG** (retrieval-augmented generation)
-- Endpoints para generación, análisis y verificación
-- Fácil de desplegar con **Nginx + systemd**
-- Compatible con **Python 3.10+**
-- Licencia **MIT**
+IASanic actúa como **middleware (puente)** entre tus aplicaciones y la API de **Google Generative AI (Gemini)**.  
+Proporciona endpoints REST simples para:
+- Generar texto directamente desde Gemini.
+- Analizar y normalizar consultas del usuario.
+- Ejecutar flujos **RAG (Retrieval-Augmented Generation)** combinando datos locales y contextuales.
+
+Diseñado para arquitecturas de microservicios, puede ejecutarse tanto **localmente** como en **entornos de producción** (Nginx + systemd).
+
+---
+
+##  Estructura del proyecto
+
+```bash
+iasanic/
+ ├── app/
+ │   ├── __init__.py
+ │   ├── app.py
+ │   ├── config.py
+ │   ├── services.py
+ │   ├── normalizador_funcion.py
+ │   └── google_keys.json
+ ├── venv/
+ └── requirements.txt
+```
+
 
 ## Instalación Rápida
 
@@ -171,7 +193,8 @@ sudo certbot --nginx -d tu-dominio.com
 Con esto, IASanic quedará desplegado de forma segura y lista para producción.
 
 
-## Licencia
 
-MIT License - ver LICENSE para más detalles.
+##  Licencia
 
+Distribuido bajo licencia **MIT**.  
+Libre para usar, modificar y distribuir.

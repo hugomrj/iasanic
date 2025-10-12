@@ -98,25 +98,78 @@ curl http://localhost:8000/health
 
 
 
-### RAG
-
-```bash
-curl -X POST http://localhost:8000/generate_rag \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_query": "¿Cuántos días de vacaciones tengo?",
-    "context": "Política de vacaciones",
-    "datos": "Información adicional"
-  }'
-```
 
 
 ## Despliegue en Producción
 
-Ver la guía completa en el repositorio para configuración con:
-- Nginx
-- Systemd
-- SSL/TLS
+A continuación se muestra un ejemplo básico para desplegar IASanic en un servidor Linux:
+
+### 1. Crear servicio systemd
+
+Archivo: `/etc/systemd/system/iasanic.service`
+
+```ini
+[Unit]
+Description=IASanic Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/iasanic
+Environment="PATH=/opt/iasanic/venv/bin"
+ExecStart=/opt/iasanic/venv/bin/sanic app.app:app --workers=2 --host=127.0.0.1 --port=8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Activar el servicio:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable iasanic
+sudo systemctl start iasanic
+sudo systemctl status iasanic
+```
+
+### 2. Configurar Nginx como proxy inverso
+
+Archivo: `/etc/nginx/sites-available/iasanic`
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+Activar el sitio y reiniciar Nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/iasanic /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+### 3. (Opcional) Habilitar HTTPS
+
+Instalar y configurar **Certbot** para certificados SSL:
+
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d tu-dominio.com
+```
+
+Con esto, IASanic quedará desplegado de forma segura y lista para producción.
+
 
 ## Licencia
 

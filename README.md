@@ -16,16 +16,17 @@ Ideal como **puerta de enlace IA local o en red**, integrable con aplicaciones, 
 
 ## Descripción técnica
 
-IASanic actúa como un **API Gateway** entre tus aplicaciones y la API de **Google Generative AI (Gemini)**.  
-Centraliza y gestiona las solicitudes a los modelos de Gemini mediante endpoints REST, facilitando la integración y el control de acceso.
+IASanic es un **AI Gateway modular** desarrollado con **Sanic**, diseñado para orquestar y centralizar las solicitudes hacia la API de **Google Generative AI (Gemini)**.  
+Su arquitectura ligera permite integrarlo fácilmente en ecosistemas de microservicios o como servicio independiente.
 
-Proporciona endpoints para:
-- **Generar texto** directamente desde Gemini.  
-- **Analizar y normalizar** consultas del usuario.  
-- **Ejecutar flujos RAG (Retrieval-Augmented Generation)** combinando datos locales y contexto dinámico.
+Actúa como un punto de entrada unificado que:
+- **Gestiona y rota claves** de API de forma segura.  
+- **Preprocesa y analiza** las consultas del usuario (intención, claridad, parámetros).  
+- **Genera respuestas** directas desde Gemini o enriquecidas mediante **RAG (Retrieval-Augmented Generation)**.  
+- **Normaliza y valida** los resultados antes de enviarlos a las aplicaciones cliente.  
+- Proporciona **observabilidad y control de errores** mediante endpoints de salud y latencia.
 
-Diseñado para arquitecturas de microservicios, puede desplegarse tanto **localmente** como en **entornos de producción** (Nginx + systemd).
-
+IASanic convierte la comunicación con modelos generativos en un flujo **estructurado, estable y escalable**, ideal para plataformas que requieren **IA conversacional o contextual** en entornos locales o de producción.
 
 
 

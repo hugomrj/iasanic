@@ -97,20 +97,34 @@ python app/app.py
 ### Producción
 sanic app.app:app --workers=4 --host=0.0.0.0 --port=8000
 
+
+
+
 ## Endpoints
 
-### Generación de texto
+IASanic expone una interfaz REST simple para interactuar con los modelos de Gemini y el motor RAG.
 
-```bash
+---
+
+### 1. Generación de texto
+
+Genera texto libre a partir de un prompt.
+
 curl -X POST http://localhost:8000/generate/ \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Hola, ¿quién eres?"}'
-```
 
+Ejemplo de respuesta:
+{
+  "response": "Soy IASanic, un gateway que conecta tus apps con Google Gemini."
+}
 
-### RAG
+---
 
-```bash
+### 2. Generación RAG
+
+Combina contexto y datos locales para producir respuestas enriquecidas mediante RAG (Retrieval-Augmented Generation).
+
 curl -X POST http://localhost:8000/generate_rag \
   -H "Content-Type: application/json" \
   -d '{
@@ -118,14 +132,22 @@ curl -X POST http://localhost:8000/generate_rag \
     "context": "Política de vacaciones",
     "datos": "Información adicional"
   }'
-```
 
+Ejemplo de respuesta:
+{
+  "response": "Según la política actual, te corresponden 18 días hábiles de vacaciones."
+}
 
-### Health Check
-```bash
+---
+
+### 3. Health Check
+
+Verifica que el servicio esté activo.
+
 curl http://localhost:8000/health
-```
 
+Respuesta:
+{ "status": "ok" }
 
 
 

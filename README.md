@@ -92,11 +92,16 @@ Crear `app/google_keys.json`:
 ## Uso
 
 ### Desarrollo
+
+```bash
 python app/app.py
+```
+
 
 ### Producción
+```bash
 sanic app.app:app --workers=4 --host=0.0.0.0 --port=8000
-
+```
 
 
 
@@ -109,22 +114,25 @@ IASanic expone una interfaz REST simple para interactuar con los modelos de Gemi
 ### 1. Generación de texto
 
 Genera texto libre a partir de un prompt.
-
+```bash
 curl -X POST http://localhost:8000/generate/ \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Hola, ¿quién eres?"}'
+```
+
 
 Ejemplo de respuesta:
+```json
 {
   "response": "Soy IASanic, un gateway que conecta tus apps con Google Gemini."
 }
-
+```
 ---
 
 ### 2. Generación RAG
 
 Combina contexto y datos locales para producir respuestas enriquecidas mediante RAG (Retrieval-Augmented Generation).
-
+```bash
 curl -X POST http://localhost:8000/generate_rag \
   -H "Content-Type: application/json" \
   -d '{
@@ -132,23 +140,21 @@ curl -X POST http://localhost:8000/generate_rag \
     "context": "Política de vacaciones",
     "datos": "Información adicional"
   }'
+```
 
-Ejemplo de respuesta:
-{
-  "response": "Según la política actual, te corresponden 18 días hábiles de vacaciones."
-}
 
 ---
 
 ### 3. Health Check
 
 Verifica que el servicio esté activo.
-
+```bash
 curl http://localhost:8000/health
-
+```
 Respuesta:
+```json
 { "status": "ok" }
-
+```
 
 
 

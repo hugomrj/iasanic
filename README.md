@@ -19,12 +19,16 @@ Ideal para montar un **servidor IA local o en red**, integrable con cualquier ap
 
 ## Instalación Rápida
 
-# Clonar repositorio
+### Clonar repositorio
+
+```bash
 git clone https://github.com/hugomrj/iasanic.git
 cd iasanic
+```
 
 
-# Crear entorno virtual
+
+### Crear entorno virtual
 
 ```bash
 python3 -m venv venv
@@ -33,9 +37,13 @@ source venv/bin/activate  # Linux/Mac
 ```
 
 
+### Instalar dependencias
 
-# Instalar dependencias
+```bash
 pip install -r requirements.txt
+```
+
+
 
 ## Configuración
 
@@ -114,5 +122,3 @@ Ver la guía completa en el repositorio para configuración con:
 
 MIT License - ver LICENSE para más detalles.
 
-
-Hugo Romero

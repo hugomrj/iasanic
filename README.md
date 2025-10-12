@@ -4,10 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 [![Status](https://img.shields.io/badge/status-stable-success.svg)]()
 
-Servidor puente para la API **Google Gemini**, construido con **Sanic**.  
-Permite generar texto, analizar preguntas y crear respuestas RAG de forma centralizada mediante endpoints REST.
 
-Ideal para montar un **servidor IA local o en red**, integrable con cualquier aplicación o microservicio.
+
+Servidor **gateway para la API Google Gemini**, construido con **Sanic**.  
+Centraliza las solicitudes hacia los modelos generativos de Google, gestionando claves, peticiones y respuestas de forma unificada mediante endpoints REST.
+
+Ideal como **puerta de enlace IA local o en red**, integrable con aplicaciones, microservicios o sistemas existentes.
+
 
 ---
 

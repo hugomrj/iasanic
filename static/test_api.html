@@ -98,7 +98,11 @@
       output.textContent = "Enviando...";
 
       try {
-        const res = await fetch("http://localhost:8000/analyze_question/", {
+
+
+
+        const server = window.location.origin; 
+        const res = await fetch( server + "/analyze_question/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question })

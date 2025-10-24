@@ -94,7 +94,7 @@ Crear `app/google_keys.json`:
 ### Desarrollo
 
 ```bash
-python app/app.py
+sanic app.app --dev 
 ```
 
 
@@ -235,3 +235,4 @@ Con esto, IASanic quedará desplegado de forma segura y lista para producción.
 
 Distribuido bajo licencia **MIT**.  
 Libre para usar, modificar y distribuir.
+

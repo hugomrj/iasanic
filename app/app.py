@@ -1,8 +1,10 @@
 from sanic import Sanic, response
 from sanic.request import Request
-from sanic.response import json, text
+from sanic.response import json, text, file
 from app.services import analyze_question_with_ai, generate_rag_response, get_gemma_response
 import time
+
+
 
 app = Sanic("IA_Server")
 
@@ -53,6 +55,9 @@ async def generate_response(request: Request):
     except Exception as e:
         return json({"error": f"Error interno: {str(e)}"}, status=500)
 
+
+
+
 @app.post("/analyze_question/")
 async def analyze_question(request: Request):
     try:
@@ -69,6 +74,9 @@ async def analyze_question(request: Request):
     except Exception as e:
         return json({"error": f"Error interno al procesar la pregunta: {str(e)}"}, status=500)
 
+
+
+
 @app.route("/health")
 async def health_check(request: Request):
     return json({"status": "ok"})
@@ -82,5 +90,14 @@ async def ping(request: Request):
         "response_time_ms": round((end - start) * 1000, 2)
     })
 
+
+
+@app.route("/tester")
+async def serve_tester(request):
+    return await file("static/test_api.html")
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, workers=2, access_log=False)
+    app.run(host="0.0.0.0", port=8000, workers=2, access_log=False,  dev=True)
+
+

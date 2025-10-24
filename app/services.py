@@ -3,7 +3,7 @@ import datetime
 import json
 import google.generativeai as genai
 from app.config import settings
-from app.normalizador import normalizar_nombre
+from app.normalizador import normalizar_nombre_funcion
 from dateutil.relativedelta import relativedelta
 from datetime import date
 
@@ -177,7 +177,6 @@ def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
                 )
             )
 
-
             print(response.text)
 
             return response.text or "No se pudo generar respuesta estructurada"
@@ -200,26 +199,30 @@ def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
 
 
 
+
+
 def analyze_question_with_ai(user_question: str) -> dict:
+
     prompt = f"""
+    sistema: Tu tarea es analizar la siguiente pregunta del usuario y devolver un JSON con la estructura definida. 
     configuracion:
     idioma: español
     formato: json
     reglas:
     - Inferir ambigüedades
     - No explicaciones
-    - Retornar vacío si no se entiende
-    - campo funcion:
-        - Genera nombre más comun, corto, claro y utilizado,
-        - Prioriza el uso de sustantivos y complementos relevantes.
-        - Omite palabras redundantes o poco informativas.
-
+    - Retornar vacío si no se entiende      
     - claridad: "Evaluar lógica y coherencia de solicitud"
+    - campo funcion:
+        - El nombre debe seguir el patrón <verbo>_<objeto>[_<detalle_opcional>].
+        - Solamente 4 palabras como maximo
+        - Prioriza el uso de sustantivos y complementos relevantes.
+        - El nombre de la función debe reflejar directamente la intención.
     - campo parametros:
         - Inferir valores completos y correctos para la función especificada
-        - Valor en snake_case
+        - Valor en snake_case           
+
     estructura_salida:
-    funcion: "snake_case"
     palabras_clave: "lista"
     entidades: "lista objetos"
     intencion: "deducir proposito de solicitud muy breve"
@@ -227,9 +230,8 @@ def analyze_question_with_ai(user_question: str) -> dict:
     confianza: "1-9"
     claridad: "alta | media | baja"
     original: "corregido"
+    funcion: "snake_case"
     parametros: {{"clave": "valoe"}}
-
-
     solicitud: >
         {user_question}
     """.strip()
@@ -256,7 +258,8 @@ def analyze_question_with_ai(user_question: str) -> dict:
 
     # Si JSON válido, normalizar y devolver dict
     return normalize_before_retrieval(result)
-    #return result
+    # return result["funcion"]
+
 
 
 
@@ -324,7 +327,6 @@ def normalize_before_retrieval(data: dict) -> dict:
 
 
 
-
         param_keys = list(parametro.keys())
         for key in param_keys:
             if key.lower() == "periodo":
@@ -360,14 +362,12 @@ def normalize_before_retrieval(data: dict) -> dict:
         data["estado"] = "rechazado"
 
 
-
-
-
     # ⬇️ Normalizar el nombre de la función aquí
-    data["funcion"] = normalizar_nombre(data["funcion"])
+    data["funcion"] = normalizar_nombre_funcion(data["funcion"])
 
 
     # Ahora construimos el diccionario de salida con el orden deseado
+    '''
     ordered_data = {
         "funcion": data["funcion"],
         "parametros": data["parametros"],
@@ -380,6 +380,18 @@ def normalize_before_retrieval(data: dict) -> dict:
         "original": data["original"],
         "estado": data.get("estado", "")
     }
+    '''
+
+
+    ordered_data = {
+        "funcion": data["funcion"],
+        "intencion": data.get("intencion", ""),
+    }
+
+
+
+
+
 
     return ordered_data
 

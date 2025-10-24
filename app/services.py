@@ -367,8 +367,7 @@ def normalize_before_retrieval(data: dict) -> dict:
 
 
     # Ahora construimos el diccionario de salida con el orden deseado
-    '''
-    ordered_data = {
+    ordered_data = {        
         "funcion": data["funcion"],
         "parametros": data["parametros"],
         "palabras_clave": data["palabras_clave"],
@@ -379,13 +378,6 @@ def normalize_before_retrieval(data: dict) -> dict:
         "claridad": data.get("claridad", ""),
         "original": data["original"],
         "estado": data.get("estado", "")
-    }
-    '''
-
-
-    ordered_data = {
-        "funcion": data["funcion"],
-        "intencion": data.get("intencion", ""),
     }
 
 

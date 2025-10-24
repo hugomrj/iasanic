@@ -101,8 +101,21 @@
 
 
 
-        const server = window.location.origin; 
-        console.log(server);
+        // Obtiene la ruta actual (por ejemplo, http://localhost:8000/dev/test/analyze_question/)
+        const fullPath = window.location.pathname;
+
+        // Busca el final "/analyze_question/"
+        const index = fullPath.indexOf("/analyze_question/");
+
+        let basePath = "";
+        if (index !== -1) {
+          // Extrae todo el prefijo antes de "/analyze_question/"
+          basePath = fullPath.slice(0, index);
+        }
+
+        // Construye la URL completa al endpoint
+        const server = window.location.origin + basePath;
+        console.log("Server base:", server);
 
         const res = await fetch( server + "/analyze_question/", {
           method: "POST",

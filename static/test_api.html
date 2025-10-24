@@ -102,6 +102,8 @@
 
 
         const server = window.location.origin; 
+        console.log(server);
+
         const res = await fetch( server + "/analyze_question/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

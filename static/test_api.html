@@ -100,24 +100,17 @@
       try {
 
 
-
-        // Obtiene la ruta actual (por ejemplo, http://localhost:8000/dev/test/analyze_question/)
+        // Ejemplo: /ia/tester  →  /ia
         const fullPath = window.location.pathname;
-        alert(fullPath)
-        console.log(fullPath)
 
-        // Busca el final "/analyze_question/"
-        const index = fullPath.indexOf("/analyze_question/");
+        // Divide el path por "/", filtra vacíos y toma el primer segmento
+        const parts = fullPath.split("/").filter(Boolean);
+        const basePath = parts.length > 0 ? "/" + parts[0] : "";
 
-        let basePath = "";
-        if (index !== -1) {
-          // Extrae todo el prefijo antes de "/analyze_question/"
-          basePath = fullPath.slice(0, index);
-        }
-
-        // Construye la URL completa al endpoint
+        // Construye la URL base
         const server = window.location.origin + basePath;
         console.log("Server base:", server);
+
 
         const res = await fetch( server + "/analyze_question/", {
           method: "POST",

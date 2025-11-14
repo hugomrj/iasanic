@@ -46,40 +46,36 @@ def get_gemma_response(prompt: str, max_retries: int = 2) -> str:
 
 
 
+async def generate_rag_response(
+    user_query: str,
+    intencion: str,
+    resumen: str,
+    datos: str = "",
+    max_retries: int = 2
+) -> str:
 
-
-def generate_rag_response(user_query: str, context: str, datos: str = "", max_retries: int = 2) -> str:
-    """
-    Genera una respuesta RAG con intento automático de reintentos.
-
-    Args:
-        user_query: Pregunta del usuario (obligatorio)
-        context: Contexto RAG (obligatorio o vacío)
-        datos: Dato extraído directamente del RAG o de la base (opcional)
-        max_retries: Número de intentos en caso de error
-    """
     last_error = None
-
-    # Construye el prompt con la sección de datos si está disponible
-    prompt = build_rag_prompt(user_query, context, datos)
+    prompt = build_rag_prompt(user_query, intencion, resumen, datos)
 
     for attempt in range(max_retries):
         try:
             key = settings.get_random_key()
             model = genai.GenerativeModel(settings.gemma_model_name)
 
-            response = model.generate_content(
+            # SOLUCIÓN: Usar genai.GenerationConfig en lugar de genai.types.GenerationConfig
+            generation_config = genai.GenerationConfig(
+                temperature=0.5,
+                top_p=1.0,
+                top_k=20,
+                max_output_tokens=1024
+            )
+
+            response = await model.generate_content_async(
                 prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=0.0,
-                    top_p=1.0,
-                    top_k=1,
-                    max_output_tokens=512
-                )
+                generation_config=generation_config
             )
 
             print(response.text)
-
             return response.text or "No se pudo generar respuesta a la solicitud"
 
         except Exception as e:
@@ -97,20 +93,17 @@ def generate_rag_response(user_query: str, context: str, datos: str = "", max_re
 
 
 
-
-
-
-
-
-def build_rag_prompt(user_query: str, context: str, datos: str = "") -> str:
+def build_rag_prompt(user_query: str, intencion: str, resumen: str, datos: str) -> str:
     """
-    Genera un prompt RAG con formato estructurado y claro.
+    Genera un prompt RAG con formato estructurado y claro, incentivando respuestas completas.
     """
+
     PROMPT_TEMPLATE = """
 # sistema
 Eres un asistente especializado, que responde con la información dada, sin inventar.
-Indica si la funcion no esta implementada
+Indica si la función no está implementada.
 Prioriza siempre la pregunta del usuario sobre los datos encontrados.
+Explica los puntos de manera clara y completa usando toda la información disponible.
 
 # personalidad
 Amable, claro y profesional.
@@ -121,14 +114,19 @@ Amable, claro y profesional.
 
 # REGLAS
 - No termines con otra pregunta.
-- No expliques más de lo necesario.
+- No inventes información.
+- Usa todos los datos disponibles para elaborar la respuesta.
+- Presenta la información de manera organizada en párrafos.
 - Mantén los números exactos como en los datos.
-- Muestra valores numericos de montos en negritas
-- Si dato 'nivel de claridad del mensaje' es 'media', solicita mas informacion sin dar ejemplos.
-- En caso que la funcion no este implementada, informa nombre de la funcion tal como es
+- Muestra valores numéricos de montos en **negritas**.
+- Si el dato 'nivel de claridad del mensaje' es 'media', solicita más información sin dar ejemplos.
+- En caso que la función no esté implementada, informa el nombre de la función tal como es.
 
-# contexto
-{context}
+# intención
+{intencion}
+
+# resumen
+{resumen}
 
 # datos
 {datos_section}
@@ -137,18 +135,26 @@ Amable, claro y profesional.
 {user_query}
     """
 
-    datos_section = datos if datos else "No se encontró información específica en los datos disponibles."
+    datos_section = datos.strip() if datos else "No se encontró información específica en los datos disponibles."
 
     prompt = PROMPT_TEMPLATE.format(
         user_query=user_query.strip(),
-        context=context.strip(),
-        datos_section=datos_section.strip()
+        intencion=intencion.strip(),
+        resumen=resumen.strip(),
+        datos_section=datos_section
     )
 
-
-    print(prompt)
-
+    print(prompt)   
     return prompt.strip()
+
+
+
+
+
+
+
+
+
 
 
 
@@ -201,44 +207,16 @@ def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
 
 
 
-def analyze_question_with_ai(user_question: str) -> dict:
+def analyze_question_with_ai(user_question: str, intension: str | None = None) -> dict:
 
+    # regla solicitada
+    if intension is None or intension.strip() == "":
+        intension_final = None        # NO debe aparecer en el prompt
+    else:
+        intension_final = "conversacion"   # siempre esto cuando el cliente envía algo
 
-    '''
-    prompt = f"""
-    sistema: Tu tarea es analizar la siguiente pregunta del usuario y devolver un JSON con la estructura definida. 
-    configuracion:
-    idioma: español
-    formato: json
-    reglas:
-    - Inferir ambigüedades
-    - No explicaciones
-    - Retornar vacío si no se entiende      
-    - claridad: "Evaluar lógica y coherencia de solicitud"
-    - campo funcion:
-        - El nombre debe seguir el patrón <verbo>_<objeto>[_<detalle_opcional>].
-        - Solamente 4 palabras como maximo
-        - Prioriza el uso de sustantivos y complementos relevantes.
-        - El nombre de la función debe reflejar directamente la intención.
-    - campo parametros:
-        - Inferir valores completos y correctos para la función especificada
-        - Valor en snake_case           
-
-    estructura_salida:
-    palabras_clave: "lista"
-    entidades: "lista objetos"
-    intencion: "deducir proposito de solicitud muy breve"
-    resumen: "frase breve"
-    confianza: "1-9"
-    claridad: "alta | media | baja"
-    original: "corregido"
-    funcion: "snake_case"
-    parametros: {{"clave": "valoe"}}
-    solicitud: >
-        {user_question}
-    """.strip()
-    '''
-
+    # bloque opcional
+    intension_block = f'Intención_forzada: "{intension_final}"' if intension_final else ""
 
     prompt = f"""
     Sistema: Devuelve solo un JSON válido según la estructura dada, sin texto adicional.
@@ -257,7 +235,8 @@ def analyze_question_with_ai(user_question: str) -> dict:
     - intencion: siempre en snake_case, máx 4 palabras, formato <verbo>_<objeto>[_detalle].
     - parametros: solo si se pueden inferir claramente.
     - query_rag: obligatorio excepto cuando tipo="funcion".
-    - No inventar datos.
+    - No inventar datos.    
+    {intension_block}
 
     Salida:
     {{

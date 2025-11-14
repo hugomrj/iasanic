@@ -203,6 +203,8 @@ def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
 
 def analyze_question_with_ai(user_question: str) -> dict:
 
+
+    '''
     prompt = f"""
     sistema: Tu tarea es analizar la siguiente pregunta del usuario y devolver un JSON con la estructura definida. 
     configuracion:
@@ -235,6 +237,51 @@ def analyze_question_with_ai(user_question: str) -> dict:
     solicitud: >
         {user_question}
     """.strip()
+    '''
+
+
+    prompt = f"""
+    Sistema: Devuelve solo un JSON válido según la estructura dada, sin texto adicional.
+
+    Reglas:
+    - Sin explicaciones ni comentarios.
+    - Si no se entiende la solicitud: tipo="informacion" y campos vacíos.
+
+    Clasificación de tipo (prioridad: función > conversación > información):
+    1) "funcion": si el usuario pide ejecutar una acción concreta o consultar un dato dinámico que requiere ir a una base de datos.
+    2) "conversacion": si es saludo, charla o interacción social.
+    3) "informacion": si solicita contexto, explicación o datos generales.
+
+    Restricciones:
+    - funcion: solo si tipo="funcion", usar snake_case, máx 4 palabras.
+    - intencion: siempre en snake_case, máx 4 palabras, formato <verbo>_<objeto>[_detalle].
+    - parametros: solo si se pueden inferir claramente.
+    - query_rag: obligatorio excepto cuando tipo="funcion".
+    - No inventar datos.
+
+    Salida:
+    {{
+    "tipo": "",
+    "funcion": null,
+    "parametros": {{}},
+    "query_rag": "",
+    "palabras_clave": [],
+    "entidades": [],
+    "intencion": "",
+    "resumen": "",
+    "confianza": 0,
+    "claridad": "",
+    "original": ""
+    }}
+
+    Solicitud: "{user_question}"
+    """
+
+
+
+
+
+
 
     response = generate_structured_response(prompt)
 
@@ -257,8 +304,8 @@ def analyze_question_with_ai(user_question: str) -> dict:
         }
 
     # Si JSON válido, normalizar y devolver dict
-    return normalize_before_retrieval(result)
-    # return result["funcion"]
+    # return normalize_before_retrieval(result)
+    return result
 
 
 
@@ -282,6 +329,7 @@ def normalize_before_retrieval(data: dict) -> dict:
         }
 
     data.setdefault("funcion", "")
+    print(data["funcion"])
     if not data["funcion"]:
         data["funcion"] = "invalida"
 
@@ -379,10 +427,6 @@ def normalize_before_retrieval(data: dict) -> dict:
         "original": data["original"],
         "estado": data.get("estado", "")
     }
-
-
-
-
 
 
     return ordered_data

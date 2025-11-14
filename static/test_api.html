@@ -100,17 +100,18 @@
       try {
 
 
-        // Ejemplo: /ia/tester  →  /ia
-        const fullPath = window.location.pathname;
+        let server;
 
-        // Divide el path por "/", filtra vacíos y toma el primer segmento
-        const parts = fullPath.split("/").filter(Boolean);
-        const basePath = parts.length > 0 ? "/" + parts[0] : "";
+        if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
+          // DEV → usar origin tal cual viene (incluye puerto dinámico)
+          server = location.origin;   // ej: http://127.0.0.1:8012
+        } else {
+          // PRODUCCIÓN → tomar solo el primer nivel (/ia)
+          const base = "/" + location.pathname.split("/")[1];
+          server = location.origin + base;  
+        }
 
-        // Construye la URL base
-        const server = window.location.origin + basePath;
         console.log("Server base:", server);
-
 
         const res = await fetch( server + "/analyze_question/", {
           method: "POST",

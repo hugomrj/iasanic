@@ -65,7 +65,6 @@ async def generate_rag_response(
                 generation_config=generation_config
             )
 
-            print(response.text)
             return response.text or "No se pudo generar respuesta a la solicitud"
 
         except Exception as e:
@@ -134,7 +133,6 @@ Amable, claro y profesional.
         datos_section=datos_section
     )
 
-    print(prompt)   
     return prompt.strip()
 
 
@@ -273,7 +271,7 @@ def normalize_before_retrieval(data: dict) -> dict:
         }
 
     data.setdefault("funcion", "")
-    print(data["funcion"])
+
     if not data["funcion"]:
         data["funcion"] = "invalida"
 

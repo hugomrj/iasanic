@@ -40,26 +40,25 @@ async def generate_text_with_gemma(request: Request):
 
 
 
+
 @app.post("/generate_rag")
 async def generate_response(request: Request):
     try:
         data = request.json or {}
-
-        user_query = data.get("user_query", "")
-        datos = data.get("datos", "")
-        resumen = data.get("resumen", "")
-        intencion = data.get("intencion", "")
+        print(f"REQ RAG: {data.get('user_query', 'N/A')[:50]}...")
 
         rag_response = await generate_rag_response(
-            user_query, intencion, resumen, datos
+            data.get("user_query", ""), 
+            data.get("intencion", ""), 
+            data.get("resumen", ""), 
+            data.get("datos", "")
         )
 
+        print(f"RES RAG: OK")
         return json({"response": rag_response})
-
     except Exception as e:
-        print("=== ERROR EN EL ENDPOINT:", str(e), "===")
+        print(f"ERR RAG: {str(e)}")
         return json({"error": f"Error interno: {str(e)}"}, status=500)
-
 
 
 
@@ -70,26 +69,24 @@ async def generate_response(request: Request):
 @app.post("/analyze_question/")
 async def analyze_question(request: Request):
     try:
-        data = request.json
-        if data is None or "question" not in data:
-            return json({"error": "Datos inválidos"}, status=400)
-
-        user_question = data["question"].strip()
-        user_intension = data.get("intension", "").strip()
-
-        print(f"Procesando: {user_question}")
+        data = request.json or {}
+        pregunta = data.get("question", "N/A")
         
-        # CAMBIO: Agregamos await aquí también
+        # Log minimalista: Entrada
+        print(f"REQ: {pregunta[:50]}...") 
+
         analysis_result = await analyze_question_with_ai(
-            user_question,
-            intension=user_intension
+            pregunta,
+            intension=data.get("intension", "").strip()
         )
 
+        # Log minimalista: Salida
+        print(f"RES: {analysis_result.get('tipo', 'error')}")
+        
         return json(analysis_result, ensure_ascii=False)
     except Exception as e:
+        print(f"ERR: {str(e)}")
         return json({"error": str(e)}, status=500)
-
-
 
 
 

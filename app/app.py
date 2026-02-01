@@ -45,7 +45,6 @@ async def generate_text_with_gemma(request: Request):
 async def generate_response(request: Request):
     try:
         data = request.json or {}
-        print(f"REQ RAG: {data.get('user_query', 'N/A')[:50]}...")
 
         rag_response = await generate_rag_response(
             data.get("user_query", ""), 
@@ -80,8 +79,6 @@ async def analyze_question(request: Request):
             intension=data.get("intension", "").strip()
         )
 
-        # Log minimalista: Salida
-        print(f"RES: {analysis_result.get('tipo', 'error')}")
         
         return json(analysis_result, ensure_ascii=False)
     except Exception as e:

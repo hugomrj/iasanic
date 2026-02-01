@@ -1,4 +1,4 @@
-from sanic import Sanic, response
+from sanic import Sanic, Request
 from sanic.request import Request
 from sanic.response import json, text, file
 from app.services import analyze_question_with_ai, generate_rag_response, get_gemma_response
@@ -19,6 +19,9 @@ async def cors_headers(request, resp):
 async def hello(request: Request):
     return text("Hello from Sanic!")
 
+
+
+# --- Endpoint: /generate/ ---
 @app.post("/generate/")
 async def generate_text_with_gemma(request: Request):
     try:
@@ -27,10 +30,11 @@ async def generate_text_with_gemma(request: Request):
             return json({"error": "Falta el campo 'prompt'"}, status=400)
 
         prompt = data["prompt"]
-        gemma_output = get_gemma_response(prompt)
+        # CAMBIO: Agregamos await porque get_gemma_response ahora es async
+        gemma_output = await get_gemma_response(prompt) 
         return json({"response": gemma_output})
     except Exception as e:
-        return json({"error": f"Error al generar contenido con Gemma: {str(e)}"}, status=500)
+        return json({"error": f"Error al generar contenido: {str(e)}"}, status=500)
 
 
 
@@ -59,48 +63,31 @@ async def generate_response(request: Request):
 
 
 
-from sanic import Sanic, Request
-from sanic.response import json
 
+
+
+# --- Endpoint: /analyze_question/ ---
 @app.post("/analyze_question/")
 async def analyze_question(request: Request):
     try:
-        # En Sanic, request.json ya es el diccionario (no necesita await)
         data = request.json
-
-        # Si no hay datos JSON
-        if data is None:
-            return json({"error": "Se esperaba JSON en el cuerpo"}, status=400)
-
-        # campo obligatorio
-        if "question" not in data:
-            return json({"error": "El campo 'question' es requerido"}, status=400)
+        if data is None or "question" not in data:
+            return json({"error": "Datos inválidos"}, status=400)
 
         user_question = data["question"].strip()
-        if not user_question:
-            return json({"error": "La pregunta no puede estar vacía"}, status=400)
+        user_intension = data.get("intension", "").strip()
 
-        # campo opcional
-        user_intension = data.get("intension")
-        if user_intension:
-            user_intension = user_intension.strip()
-
-        print(f"Llamando a analyze_question_with_ai con: {user_question}, {user_intension}")
+        print(f"Procesando: {user_question}")
         
-        # procesar
-        analysis_result = analyze_question_with_ai(
+        # CAMBIO: Agregamos await aquí también
+        analysis_result = await analyze_question_with_ai(
             user_question,
             intension=user_intension
         )
 
         return json(analysis_result, ensure_ascii=False)
-
     except Exception as e:
-        print(f"Error completo: {str(e)}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
-        return json({"error": f"Error interno al procesar la pregunta: {str(e)}"}, status=500)
-
+        return json({"error": str(e)}, status=500)
 
 
 
@@ -133,3 +120,4 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, workers=2, access_log=False,  dev=True)
 
 
+    

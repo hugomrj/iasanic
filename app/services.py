@@ -8,11 +8,7 @@ from dateutil.relativedelta import relativedelta
 from datetime import date
 
 
-
-def get_gemma_response(prompt: str, max_retries: int = 2) -> str:
-    """
-    Envía un prompt al modelo Gemma y retorna su respuesta de texto.
-    """
+async def get_gemma_response(prompt: str, max_retries: int = 2) -> str:
     last_error = None
 
     for attempt in range(max_retries):
@@ -20,29 +16,23 @@ def get_gemma_response(prompt: str, max_retries: int = 2) -> str:
             key = settings.get_random_key()
             model = genai.GenerativeModel(settings.gemma_model_name)
 
-            response = model.generate_content(
+            # CAMBIO CLAVE: Usar generate_content_async con 'await'
+            response = await model.generate_content_async(
                 prompt,
-                generation_config=genai.types.GenerationConfig(
+                generation_config=genai.GenerationConfig(
                     temperature=0.0,
                     top_p=1.0,
                     top_k=1,
                     max_output_tokens=512
                 )
             )
-
-            print(response.text)
-
-            return response.text or "No se pudo generar respuesta a la solicitud"
+            return response.text or "No se pudo generar respuesta"
 
         except Exception as e:
             last_error = e
-            print(f"Intento {attempt+1} fallido (key: {key[-6:]}) - Error: {str(e)[:200]}")
+            print(f"Intento {attempt+1} fallido - Error: {str(e)[:200]}")
             continue
-
-    print(f"Fallo definitivo. Último error: {str(last_error)[:300]}")
-    raise RuntimeError("Error al procesar la solicitud. Intente nuevamente.")
-
-
+    raise RuntimeError("Error al procesar la solicitud.")
 
 
 
@@ -158,42 +148,28 @@ Amable, claro y profesional.
 
 
 
-
-def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
-    """
-    Genera respuesta determinista para RAG con:
-    - Rotación automática de claves
-    - 2 reintentos automáticos
-    - Logging seguro
-    """
+async def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
     last_error = None
-
     for attempt in range(max_retries):
         try:
-            key = settings.get_random_key()  # Configura nueva key automáticamente
+            key = settings.get_random_key()
             model = genai.GenerativeModel(settings.gemma_model_name)
 
-            response = model.generate_content(
+            # CAMBIO: Usar generate_content_async y genai.GenerationConfig
+            response = await model.generate_content_async(
                 prompt,
-                generation_config=genai.types.GenerationConfig(
+                generation_config=genai.GenerationConfig(
                     temperature=0.0,
                     top_p=1.0,
                     top_k=1,
                     max_output_tokens=512
                 )
             )
-
-            print(response.text)
-
             return response.text or "No se pudo generar respuesta estructurada"
-
         except Exception as e:
             last_error = e
-            print(f"Intento {attempt+1} fallido (key: {key[-6:]}) - Error: {str(e)[:200]}")
             continue
-
-    print(f"Fallo definitivo. Último error: {str(last_error)[:300]}")
-    raise RuntimeError("Error al procesar la solicitud. Intente nuevamente.")
+    raise RuntimeError("Error al procesar la solicitud estructurada.")
 
 
 
@@ -202,12 +178,7 @@ def generate_structured_response(prompt: str, max_retries: int = 2) -> str:
 
 
 
-
-
-
-
-
-def analyze_question_with_ai(user_question: str, intension: str | None = None) -> dict:
+async def analyze_question_with_ai(user_question: str, intension: str | None = None) -> dict:
 
     # regla solicitada
     if intension is None or intension.strip() == "":
@@ -256,13 +227,7 @@ def analyze_question_with_ai(user_question: str, intension: str | None = None) -
     Solicitud: "{user_question}"
     """
 
-
-
-
-
-
-
-    response = generate_structured_response(prompt)
+    response = await generate_structured_response(prompt)
 
     # Limpieza del JSON
     json_str = (

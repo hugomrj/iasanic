@@ -176,16 +176,7 @@ async def generate_structured_response(prompt: str, max_retries: int = 2) -> str
 
 
 
-async def analyze_question_with_ai(user_question: str, intension: str | None = None) -> dict:
-
-    # regla solicitada
-    if intension is None or intension.strip() == "":
-        intension_final = None        # NO debe aparecer en el prompt
-    else:
-        intension_final = "conversacion"   # siempre esto cuando el cliente envía algo
-
-    # bloque opcional
-    intension_block = f'Intención_forzada: "{intension_final}"' if intension_final else ""
+async def analyze_question_with_ai(user_question: str) -> dict:
 
     prompt = f"""
     Sistema: Devuelve solo un JSON válido según la estructura dada, sin texto adicional.
@@ -205,7 +196,6 @@ async def analyze_question_with_ai(user_question: str, intension: str | None = N
     - parametros: solo si se pueden inferir claramente.
     - query_rag: obligatorio excepto cuando tipo="funcion".
     - No inventar datos.    
-    {intension_block}
 
     Salida:
     {{
@@ -235,6 +225,7 @@ async def analyze_question_with_ai(user_question: str, intension: str | None = N
         .strip()
     )
 
+    print(json_str)
 
     try:
         result = json.loads(json_str)
@@ -245,133 +236,10 @@ async def analyze_question_with_ai(user_question: str, intension: str | None = N
             "original": user_question
         }
 
-    # Si JSON válido, normalizar y devolver dict
-    # return normalize_before_retrieval(result)
     return result
 
 
 
-
-
-
-
-def normalize_before_retrieval(data: dict) -> dict:
-
-
-    if "error" in data:
-        return {
-            "funcion": "error_json_invalido",
-            "parametros": {},
-            "resumen": data.get("error", "Error desconocido"),
-            "palabras_clave": [],
-            "confianza": 0,
-            "claridad": "baja",
-            "original": data.get("original", ""),
-            "estado": "rechazado"
-        }
-
-    data.setdefault("funcion", "")
-
-    if not data["funcion"]:
-        data["funcion"] = "invalida"
-
-    data.setdefault("resumen", "")
-    data.setdefault("palabras_clave", [])
-    data.setdefault("parametros", {})
-    data.setdefault("confianza", 1)
-    data.setdefault("original", "")
-
-
-
-    # Limpiar "date:" si está en el parámetro
-    ''''
-    fecha = data["parametros"].get("fecha", "")
-    if fecha.startswith("date:"):
-        data["parametros"]["fecha"] = fecha[5:]
-    '''
-
-
-    if data.get("claridad") == "alta":
-
-        data["estado"] = "aprobado"
-
-
-        # Atajos para evitar repetir
-        palabra_clave= data.get("palabras_clave", [])  # tokens clave detectados
-        parametro = data["parametros"]  # donde se guardarán todos los parámetros
-
-        hoy = datetime.date.today()
-
-
-        # en el parámetro 'fecha' usando un diccionario de conversión precalculado
-        fecha = {
-            "hoy": hoy.strftime("%Y-%m-%d"),
-            "ayer": (hoy - datetime.timedelta(days=1)).strftime("%Y-%m-%d"),  # Resta 1 día
-            "mañana": (hoy + datetime.timedelta(days=1)).strftime("%Y-%m-%d")  # Suma 1 día
-        }
-        for clave, valor in parametro.items():
-            # Solo normaliza si el valor es EXACTAMENTE un string (no lista u otro tipo)
-            if isinstance(valor, str) and valor in fecha:
-                parametro[clave] = fecha[valor]
-
-
-
-
-        param_keys = list(parametro.keys())
-        for key in param_keys:
-            if key.lower() == "periodo":
-                valor = str(parametro.pop(key)).strip().lower()
-
-                match valor:
-                    case "mes":
-                        parametro["mes_actual"] = hoy.strftime("%Y-%m")
-                    case "mes_anterior":
-                        parametro["mes_anterior"] = (hoy - relativedelta(months=1)).strftime("%Y-%m")
-                    case "mes_siguiente":
-                        parametro["mes_siguiente"] = (hoy + relativedelta(months=1)).strftime("%Y-%m")
-                    case "año_actual":
-                        parametro["año_actual"] = hoy.strftime("%Y")  # Solo el año (2024)
-                    case "año_anterior":
-                        parametro["año_anterior"] = str(hoy.year - 1)  # 2023
-                    case "año_siguiente":
-                        parametro["año_siguiente"] = str(hoy.year + 1)  # 2025
-                    case _:
-                        parametro[key] = valor  # Conserva el original
-
-
-
-
-
-    elif data.get("claridad") == "media":
-        data["funcion"] = "pendiente_aclaracion"
-        data["estado"] = "pendiente"
-
-
-    else:
-        data["funcion"] = "desconocida"
-        data["estado"] = "rechazado"
-
-
-    # ⬇️ Normalizar el nombre de la función aquí
-    data["funcion"] = normalizar_nombre_funcion(data["funcion"])
-
-
-    # Ahora construimos el diccionario de salida con el orden deseado
-    ordered_data = {        
-        "funcion": data["funcion"],
-        "parametros": data["parametros"],
-        "palabras_clave": data["palabras_clave"],
-        "entidades": data.get("entidades", []),
-        "intencion": data.get("intencion", ""),
-        "resumen": data["resumen"],
-        "confianza": data["confianza"],
-        "claridad": data.get("claridad", ""),
-        "original": data["original"],
-        "estado": data.get("estado", "")
-    }
-
-
-    return ordered_data
 
 
 

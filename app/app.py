@@ -2,6 +2,7 @@ from sanic import Sanic, Request
 from sanic.request import Request
 from sanic.response import json, text, file
 from app.services import analyze_question_with_ai, generate_rag_response, get_gemma_response
+from app.processor import process_intent 
 import time
 
 
@@ -74,18 +75,19 @@ async def analyze_question(request: Request):
         # Log minimalista: Entrada
         print(f"REQ: {pregunta[:50]}...") 
 
-        analysis_result = await analyze_question_with_ai(
-            pregunta,
-            intension=data.get("intension", "").strip()
-        )
+        # 1. Llamada pura a la IA
+        raw_analysis = await analyze_question_with_ai(pregunta)
 
+        # 2. Post-procesamiento y estandarización técnica
+        # Aquí es donde ocurre la magia de las fechas y el normalizador de funciones
+        analysis_result = process_intent(raw_analysis)
         
+        # 3. Respuesta final estandarizada
         return json(analysis_result, ensure_ascii=False)
+
     except Exception as e:
         print(f"ERR: {str(e)}")
         return json({"error": str(e)}, status=500)
-
-
 
 
 
